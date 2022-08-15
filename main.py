@@ -1,10 +1,11 @@
 from flask import request, jsonify
 from config import app, db
 from models import Contact
+from typing import List, Dict, Tuple
 
 
 @app.route("/contacts", methods=["GET"])
-def get_contacts():
+def get_contacts() -> jsonify:
     """
     Endpoint to retrieve all contacts from the database.
 
@@ -15,51 +16,49 @@ def get_contacts():
     Returns:
         A Flask JSON response containing a list of all contacts in the database, each represented as a JSON object.
     """
-    contacts = Contact.query.all()
-    json_contacts = list(map(lambda x: x.to_json(), contacts))
+    contacts: List[Contact] = Contact.query.all()
+    json_contacts: List[Dict[str, str | int]] = list(map(lambda x: x.to_json(), contacts))
     return jsonify({"contacts": json_contacts})
 
+
 @app.route("/create_contact", methods=["POST"])
-def create_contact():
-    """
-    Endpoint to create a new contact in the database.
+def create_contact() -> Tuple[jsonify, int]:
+	"""
+	Endpoint to create a new contact in the database.
 
-    This endpoint handles POST requests to the "/create_contact" URL. It expects a JSON payload with
-    "firstName", "lastName", and "email" fields. If any of these fields are missing, it returns a 400
-    Bad Request response.
+	This endpoint handles POST requests to the "/create_contact" URL. It expects a JSON payload with
+	"firstName", "lastName", and "email" fields. If any of these fields are missing, it returns a 400
+	Bad Request response.
 
-    If all fields are present, it attempts to create a new Contact object and save it to the database.
-    If the operation is successful, it returns a 201 Created response with a success message. If there
-    is an exception (e.g., due to a duplicate email), it returns a 400 Bad Request response with the
-    error message.
+	If all fields are present, it attempts to create a new Contact object and save it to the database.
+	If the operation is successful, it returns a 201 Created response with a success message. If there
+	is an exception (e.g., due to a duplicate email), it returns a 400 Bad Request response with the
+	error message.
 
-    Returns:
-        A Flask JSON response. On success, it returns a message indicating the user was created and
-        a 201 status code. On failure, due to missing fields or exceptions, it returns an error message
-        and a 400 status code.
-    """
-    first_name = request.json.get("firstName")
-    last_name = request.json.get("lastName")
-    email = request.json.get("email")
+	Returns:
+		A Flask JSON response. On success, it returns a message indicating the user was created and
+		a 201 status code. On failure, due to missing fields or exceptions, it returns an error message
+		and a 400 status code.
+	"""
+	first_name: str = request.json.get("firstName")
+	last_name: str = request.json.get("lastName")
+	email: str = request.json.get("email")
 
-    if not first_name or not last_name or not email:
-        return (
-            jsonify({"message": "You must include a first name, last name and email"}),
-            400,
-        )
+	if not first_name or not last_name or not email:
+		return jsonify({"message": "You must include a first name, last name and email"}), 400
 
-    new_contact = Contact(first_name=first_name, last_name=last_name, email=email)
-    try:
-        db.session.add(new_contact)
-        db.session.commit()
-    except Exception as e:
-        return jsonify({"message": str(e)}), 400
+	new_contact: Contact = Contact(first_name=first_name, last_name=last_name, email=email)
+	try:
+		db.session.add(new_contact)
+		db.session.commit()
+	except Exception as e:
+		return jsonify({"message": str(e)}), 400
 
-    return jsonify({"message": "User created!"}), 201
+	return jsonify({"message": "User created!"}), 201
 
 
 @app.route("/update_contact/<int:user_id>", methods=["PATCH"])
-def update_contact(user_id):
+def update_contact(user_id: int) -> Tuple[jsonify, int]:
     """
     Endpoint to update an existing contact in the database.
 
@@ -81,23 +80,23 @@ def update_contact(user_id):
         A Flask JSON response. On success, it returns a message indicating the user was updated and a 200
         status code. If the user is not found, it returns a 404 Not Found response.
     """
-    contact = Contact.query.get(user_id)
+    contact: Contact = Contact.query.get(user_id)
 
     if not contact:
         return jsonify({"message": "User not found"}), 404
 
-    data = request.json
+    data: dict = request.json
     contact.first_name = data.get("firstName", contact.first_name)
     contact.last_name = data.get("lastName", contact.last_name)
     contact.email = data.get("email", contact.email)
 
     db.session.commit()
 
-    return jsonify({"message": "Usr updated."}), 200
+    return jsonify({"message": "User updated."}), 200
 
 
 @app.route("/delete_contact/<int:user_id>", methods=["DELETE"])
-def delete_contact(user_id):
+def delete_contact(user_id: int) -> Tuple[jsonify, int]:
     """
     Endpoint to delete an existing contact from the database.
 
@@ -113,7 +112,7 @@ def delete_contact(user_id):
         user was deleted and a 200 status code. If the contact is not found, it returns a 404 Not Found response
         with an appropriate message.
     """
-    contact = Contact.query.get(user_id)
+    contact: Contact = Contact.query.get(user_id)
 
     if not contact:
         return jsonify({"message": "User not found"}), 404

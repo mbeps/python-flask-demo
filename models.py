@@ -1,4 +1,5 @@
 from config import db
+from typing import Dict
 
 
 class Contact(db.Model):
@@ -14,12 +15,12 @@ class Contact(db.Model):
     Methods:
         to_json(self): Serializes the contact information into a JSON-compatible dictionary.
     """
-    id = db.Column(db.Integer, primary_key=True)
-    first_name = db.Column(db.String(80), unique=False, nullable=False)
-    last_name = db.Column(db.String(80), unique=False, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    id: int = db.Column(db.Integer, primary_key=True)
+    first_name: str = db.Column(db.String(80), unique=False, nullable=False)
+    last_name: str = db.Column(db.String(80), unique=False, nullable=False)
+    email: str = db.Column(db.String(120), unique=True, nullable=False)
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, str | int]:
         """
         Serializes the contact information into a JSON-compatible dictionary.
 
